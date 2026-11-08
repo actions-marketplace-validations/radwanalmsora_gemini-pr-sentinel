@@ -1,0 +1,48 @@
+name: 'Gemini PR Sentinel'
+description: 'Autonomous AI Code Review & Security Audit Agent for GitHub Pull Requests using Google Gemini.'
+author: 'radwanalmsora'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  gemini-api-key:
+    description: 'Google Gemini API Key'
+    required: true
+  github-token:
+    description: 'GitHub Token for posting review comments'
+    required: false
+    default: ${{ github.token }}
+  model:
+    description: 'Google Gemini model to use'
+    required: false
+    default: 'gemini-2.5-flash'
+  temperature:
+    description: 'Sampling temperature for the review'
+    required: false
+    default: '0.2'
+  max-diff-lines:
+    description: 'Maximum lines of diff to review'
+    required: false
+    default: '4000'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Run Gemini PR Sentinel Engine
+      shell: bash
+      env:
+        GEMINI_API_KEY: ${{ inputs.gemini-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GEMINI_MODEL: ${{ inputs.model }}
+        GEMINI_TEMPERATURE: ${{ inputs.temperature }}
+        MAX_DIFF_LINES: ${{ inputs.max-diff-lines }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO_NAME: ${{ github.repository }}
+      run: |
+        python3 ${{ github.action_path }}/src/reviewer.py
